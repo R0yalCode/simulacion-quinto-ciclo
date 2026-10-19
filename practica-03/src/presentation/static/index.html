@@ -1,0 +1,31 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QueueLab · Simulador M/M/1</title><link rel="stylesheet" href="/styles.css"></head><body>
+<header class="header"><div class="brand"><span class="brand-mark">⌁</span><span>Queue<span class="brand-accent">Lab</span><small> LABORATORIO DE SIMULACIÓN</small></span></div><span class="header-tag">M/M/1 · SIMPY · FIFO</span></header>
+<main class="layout"><aside class="sidebar">
+<div class="panel"><div class="eyebrow">01 / CONFIGURACIÓN</div><h2>Parámetros</h2>
+<label>Escenario <select id="scenario"><option value="2">01 — Sistema estable</option><option value="2.5">02 — Mayor utilización</option><option value="2.9">03 — Casi saturado</option><option value="custom">Personalizado</option></select></label>
+<label>λ · Llegadas / unidad de tiempo <input id="lambda" type="number" min="0.01" max="100" step="0.1" value="2"></label>
+<label>μ · Servicios / unidad de tiempo <input id="mu" type="number" min="0.01" max="100" step="0.1" value="3"></label>
+<label>Duración (tiempo simulado) <input id="duration" type="number" min="1" max="10000" step="1" value="120"></label>
+<label>Semilla aleatoria <small>(nueva en cada ejecución)</small> <input id="seed" type="number" min="0" max="4294967295" step="1" value="42"></label>
+<button class="primary" id="run">↻ Generar simulación</button><div id="alert" class="alert" aria-live="polite"></div></div>
+<div class="panel"><div class="eyebrow">02 / REPRODUCCIÓN</div><h2>Control de tiempo</h2>
+<div class="actions"><button id="play">❚❚ Pausar</button><button id="restart">↶ Reiniciar</button></div>
+<label>Velocidad <select id="speed"><option value="0.5">0.5×</option><option value="1">1×</option><option value="2" selected>2×</option><option value="5">5×</option><option value="10">10×</option><option value="30">30×</option><option value="100">100×</option></select></label>
+<label>Posición <input type="range" id="timeline" min="0" max="120" value="0" step="0.01"></label><div class="meta-line"><span>t = <b id="clock">0.0</b></span><span id="durationText">/ 120</span></div></div>
+<div class="panel help"><div class="eyebrow">LEYENDA</div><p><i class="dot cyan"></i> Paquete en cola</p><p><i class="dot yellow"></i> En servicio</p><p><i class="dot green"></i> Atendido / salida</p><p class="footnote">Animación en tiempo de simulación. Si se acelera el reloj, los eventos avanzan más rápido.</p></div>
+</aside><section class="content">
+<div class="intro"><div><div class="eyebrow">SIMULACIÓN DE EVENTOS DISCRETOS</div><h1>Centro de <em>clasificación</em></h1><p>Llegadas exponenciales · Una estación de servicio · Disciplina FIFO</p></div><span class="status" id="status">● EJECUTANDO</span></div>
+<div class="stats" id="stats">
+<div class="stat"><span>Paquetes recibidos</span><strong id="arrived">0</strong><small>Total de llegadas</small></div><div class="stat"><span>Procesados</span><strong id="completed">0</strong><small>Servicios terminados</small></div><div class="stat"><span>En cola</span><strong id="queue">0</strong><small>Esperando atención</small></div><div class="stat"><span>Uso del servidor</span><strong id="util">0%</strong><small>Ocupación acumulada</small></div></div>
+<div class="panel factory"><div class="panel-head"><div><div class="eyebrow">03 / VISUALIZACIÓN EN VIVO</div><h2>Cinta transportadora</h2></div><span id="workState" class="chip">EN ESPERA</span></div>
+<div class="machine"><div class="entryLabel">ENTRADA <span>λ</span></div><div class="serviceLabel">ESTACIÓN DE SERVICIO <span>μ</span></div><div class="exitLabel">SALIDA</div>
+<div class="conveyor" id="conveyor"><div class="belt"></div><div class="queue-packs" id="queuePacks"></div><div class="station"><div class="station-top">SERVIDOR 01</div><div class="station-body" id="stationBody"><span id="stationIcon">⚙</span><b id="stationJob">LIBRE</b></div></div><div class="exit-point"><span>✓</span></div></div></div>
+<div class="machine-bottom"><span><i class="dot cyan"></i> COLA: <b id="queueCount">0</b></span><span><i class="dot yellow"></i> PROCESANDO: <b id="processing">NO</b></span><span><i class="dot green"></i> FINALIZADOS: <b id="finished">0</b></span></div>
+</div>
+<div class="charts"><div class="panel"><div class="panel-head"><div><div class="eyebrow">04 / SERIE TEMPORAL</div><h2>Longitud de la cola</h2></div><span class="chip">Lq(t)</span></div><canvas id="queueChart" height="210"></canvas></div><div class="panel"><div class="panel-head"><div><div class="eyebrow">05 / EVOLUCIÓN</div><h2>Espera y utilización</h2></div><span class="chip">Wq / ρ</span></div><canvas id="waitChart" height="210"></canvas></div></div>
+<div class="panel"><div class="panel-head"><div><div class="eyebrow">06 / ANÁLISIS DE RESULTADOS</div><h2>Teoría frente a simulación</h2></div><button class="secondary" id="export">↓ Exportar CSV</button></div>
+<div class="comparison"><table><thead><tr><th>Indicador</th><th>Teórico</th><th>Simulado hasta t</th><th>Diferencia</th></tr></thead><tbody id="metrics"></tbody></table></div><p class="footnote">L y Lq simulados usan promedios ponderados por tiempo. W y Wq se obtienen de paquetes terminados. Las fórmulas teóricas suponen estado estacionario (λ &lt; μ).</p></div>
+<div class="panel"><div class="panel-head"><div><div class="eyebrow">07 / OBSERVABILIDAD</div><h2>Registro de eventos</h2></div><span class="chip">ÚLTIMOS 8</span></div><div class="log" id="log"></div></div>
+<div class="panel"><div class="panel-head"><div><div class="eyebrow">08 / ESCENARIOS DE LA GUÍA</div><h2>Comparación global</h2></div><button class="secondary" id="compare">Comparar 3 escenarios</button></div><div class="comparison" id="comparisonResults"><p class="footnote">Ejecuta el análisis para comparar escenarios usando un horizonte de 3000 unidades de tiempo y la misma semilla.</p></div></div>
+</section></main><footer>QueueLab · Simulación académica M/M/1 · SimPy + JavaScript Canvas · Ejecución local</footer><script src="/app.js"></script></body></html>

@@ -1,0 +1,123 @@
+; SIR, NetLogo 6.x/7.x - Visualización de resultados Python (SimPy)
+extensions [csv]
+
+globals [
+  beta gamma population steps
+  python-data netlogo-data
+]
+turtles-own [sir-state]
+
+to setup
+  clear-all
+  set beta 0.30
+  set gamma 0.10
+  set population 100
+  set steps 100
+  random-seed 42
+  create-turtles population [
+    setxy random-xcor random-ycor
+    set sir-state "S"
+    set color blue
+    set shape "person"
+    set size 1.2
+  ]
+  ask n-of 5 turtles [ set sir-state "I" set color red ]
+  set python-data []
+  set netlogo-data []
+  reset-ticks
+  save-snapshot
+end
+
+to go
+  if ticks >= steps [ stop ]
+  let old-infected count turtles with [sir-state = "I"]
+  let p-infect (1 - ((1 - beta / population) ^ old-infected))
+  let infected-now turtles with [sir-state = "I"]
+  let susceptible-now turtles with [sir-state = "S"]
+  ask susceptible-now [
+    if random-float 1 < p-infect [ set sir-state "I" set color red ]
+  ]
+  ask infected-now [
+    if random-float 1 < gamma [ set sir-state "R" set color green ]
+  ]
+  tick
+  save-snapshot
+  refresh-local-plot
+end
+
+to save-snapshot
+  set netlogo-data lput (list ticks
+    (count turtles with [sir-state = "S"])
+    (count turtles with [sir-state = "I"])
+    (count turtles with [sir-state = "R"])) netlogo-data
+end
+
+to export-local
+  csv:to-file "resultados_netlogo.csv"
+    (fput (list "tiempo" "susceptibles" "infectados" "recuperados") netlogo-data)
+end
+
+to cargar-python
+  set python-data load-series "resultados_python.csv"
+  refresh-imported-plots
+end
+
+to-report load-series [filename]
+  if not file-exists? filename [
+    user-message (word "Archivo no encontrado: " filename)
+    report []
+  ]
+  let rows csv:from-file filename
+  if empty? rows [ report [] ]
+  let header first rows
+  if header != (list "tiempo" "susceptibles" "infectados" "recuperados") [
+    user-message (word "Encabezado inesperado: " header)
+    report []
+  ]
+  report but-first rows
+end
+
+to refresh-local-plot
+  set-current-plot "SIR NetLogo"
+  clear-plot
+  plot-series netlogo-data "S" "I" "R"
+end
+
+to refresh-imported-plots
+  set-current-plot "SIR Python"
+  clear-plot
+  plot-series python-data "S" "I" "R"
+  set-current-plot "Comparacion infectados"
+  clear-plot
+  plot-column python-data 2 "Python"
+  plot-column netlogo-data 2 "NetLogo"
+  set-current-plot "Comparacion susceptibles"
+  clear-plot
+  plot-column python-data 1 "Python"
+  plot-column netlogo-data 1 "NetLogo"
+  set-current-plot "Comparacion recuperados"
+  clear-plot
+  plot-column python-data 3 "Python"
+  plot-column netlogo-data 3 "NetLogo"
+end
+
+to plot-series [data pen-s pen-i pen-r]
+  plot-column data 1 pen-s
+  plot-column data 2 pen-i
+  plot-column data 3 pen-r
+end
+
+to plot-column [data column pen-name]
+  if is-list? data [
+    set-current-plot-pen pen-name
+    foreach data [row ->
+      plotxy (to-number (item 0 row)) (to-number (item column row))
+    ]
+  ]
+end
+
+to-report to-number [value]
+  ifelse is-string? value
+    [ report read-from-string value ]
+    [ report value ]
+end

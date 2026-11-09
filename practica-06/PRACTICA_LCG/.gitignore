@@ -1,0 +1,28 @@
+# Entorno virtual y cachés de Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Compilación Java
+java/target/
+
+# Resultados generados en ejecuciones (los directorios se conservan)
+python/results/sequences/*
+python/results/graphs/*
+python/results/reports/*
+java/results/sequences/*
+java/results/graphs/*
+java/results/reports/*
+results/*.csv
+results/*.json
+results/final_report/*
+!results/final_report/.gitkeep
+!**/.gitkeep
+
+# Editores y sistema
+.idea/
+.vscode/
+*.swp
+.DS_Store

@@ -1,0 +1,3 @@
+# Práctica: Método Monte Carlo para aproximar el valor de π
+# Dependencias del programa Python.
+matplotlib>=3.5
